@@ -15,3 +15,16 @@ services:
       MONGO_INITDB_DATABASE: midatabase
     volumes:
       - ./mongo-data:/data/db
+
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-medidor
+    ports:
+      - "3050:3050"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://admin77rd:admin1237rd@mongodb:27017/midatabase?authSource=admin
+    depends_on:
+      - mongodb

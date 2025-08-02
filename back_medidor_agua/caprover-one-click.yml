@@ -1,0 +1,31 @@
+captainVersion: 4
+caproverOneClickApp:
+  instructions:
+    start: Desplegará una app Spring Boot con MongoDB usando Docker Compose adaptado a CapRover.
+    end: Aplicación desplegada. Puedes conectarte al backend desde tu dominio CapRover.
+########
+version: '3.8'
+
+services:
+
+  mongodb:
+    image: mongo:6.0
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin77rd
+      MONGO_INITDB_ROOT_PASSWORD: admin1237rd
+      MONGO_INITDB_DATABASE: midatabase
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://admin77rd:admin1237rd@srv-captain--mongodb:27017/midatabase?authSource=admin
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo-data: {}

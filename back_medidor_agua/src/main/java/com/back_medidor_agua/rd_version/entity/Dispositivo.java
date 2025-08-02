@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor
@@ -17,4 +18,7 @@ public class Dispositivo {
     private String nombre;
     private String codigo;
     private String ubicacion;
+
+    @Field("esp32_mac")
+    private String esp32Mac;
 }

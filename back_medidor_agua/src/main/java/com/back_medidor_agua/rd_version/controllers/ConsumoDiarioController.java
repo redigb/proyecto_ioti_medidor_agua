@@ -9,17 +9,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/consumos")
-@CrossOrigin
+@RequestMapping("${api.prefix}/consumos-diarios")
 public class ConsumoDiarioController {
 
     @Autowired
     private IConsumoDiarioService service;
 
-    @PostMapping
-    public ResponseEntity<ConsumoDiario> crear(@RequestBody ConsumoDiario consumo) {
-        return ResponseEntity.ok(service.save(consumo));
-    }
 
     @GetMapping
     public ResponseEntity<List<ConsumoDiario>> listar() {
@@ -37,3 +32,8 @@ public class ConsumoDiarioController {
         return ResponseEntity.noContent().build();
     }
 }
+
+    /*@PostMapping
+    public ResponseEntity<ConsumoDiario> crear(@RequestBody ConsumoDiario consumo) {
+        return ResponseEntity.ok(service.save(consumo));
+    }*/

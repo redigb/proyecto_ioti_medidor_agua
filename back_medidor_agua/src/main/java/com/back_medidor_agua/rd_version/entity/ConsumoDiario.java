@@ -18,7 +18,9 @@ public class ConsumoDiario {
     private String id;
 
     private String dispositivoId; // --> referencia al _id del dispositivo
+
     private LocalDate fecha;
     private Double consumoTotal;
     private Boolean exceso;
+
 }

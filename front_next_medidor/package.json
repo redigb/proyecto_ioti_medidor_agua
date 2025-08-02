@@ -1,0 +1,37 @@
+{
+  "name": "front_next_medidor",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@iconify/react": "^6.0.0",
+    "@material-tailwind/react": "^2.1.10",
+    "@stomp/stompjs": "^7.1.1",
+    "@tanstack/react-query": "^5.84.1",
+    "apexcharts": "^5.3.2",
+    "axios": "^1.11.0",
+    "next": "15.4.5",
+    "react": "19.1.0",
+    "react-apexcharts": "^1.7.0",
+    "react-dom": "19.1.0",
+    "react-hot-toast": "^2.5.2",
+    "sockjs-client": "^1.6.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@types/sockjs-client": "^1.5.4",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
