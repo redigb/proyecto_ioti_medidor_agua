@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useEffect, useState } from "react";
-import Chart from "react-apexcharts";
 import type { Mediciones } from "../../../interfaces/mediciones"
+import dynamic from "next/dynamic";
+
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 type Props = {
     data: Mediciones[];

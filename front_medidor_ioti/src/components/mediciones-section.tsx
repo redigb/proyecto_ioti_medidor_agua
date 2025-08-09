@@ -50,7 +50,7 @@ export default function MedicionesSection() {
     const client = useRef<Client | null>(null);
 
     useEffect(() => {
-        const socket = new SockJS("http://localhost:3050/ws");
+        const socket = new SockJS("http://localhost:3050/canal-interno");
 
         client.current = new Client({
             webSocketFactory: () => socket,
@@ -79,6 +79,48 @@ export default function MedicionesSection() {
             client.current?.deactivate();
         };
     }, []);
+
+    /*
+    const client = useRef<Client | null>(null);
+    useEffect(() => {
+        client.current = new Client({
+            // ✅ WebSocket puro
+            brokerURL: "ws://localhost:3050/canal-interno",
+
+            // ✅ Activar reconexión automática
+            reconnectDelay: 5000,
+
+            // ✅ Mostrar logs si quieres depurar
+            debug: (str) => console.log("WS: ", str),
+
+            onConnect: () => {
+                console.log("✅ Conectado al WebSocket");
+
+                // Suscribirse al canal
+                client.current?.subscribe("/topic/saludos", (message) => {
+                    const data = JSON.parse(message.body);
+                    console.log("🔔 Notificación:", data);
+                    // Aquí puedes manejar el mensaje recibido
+                });
+            },
+
+            onStompError: (frame) => {
+                console.error("❌ Error STOMP:", frame);
+            },
+
+            onWebSocketError: (event) => {
+                console.error("❌ Error WebSocket:", event);
+            },
+        });
+
+        client.current.activate();
+
+        // 🔃 Cleanup al desmontar
+        return () => {
+            client.current?.deactivate();
+        };
+    }, []);
+    */
 
     // console.log("acumulacion - de medida por id:  ", medicionesTiempoReal);
 

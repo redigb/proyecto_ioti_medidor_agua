@@ -9,10 +9,19 @@ export default defineConfig({
     global: {},
   },
   server: {
-    hmr: {
-        host: "http://localhost",
-        port: 3050,
-        protocol: "wss",
+    host: true,
+    hmr: false,
+    port: 5173,
+    strictPort: true,
+    watch: {
+      usePolling: true,
+    },
+    proxy: {
+      '/canal-interno': {
+        target: 'http://localhost:3050',
+        changeOrigin: true,
+        ws: true,
+      },
     },
   }
 })

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from "react"
 
 import {
@@ -211,7 +213,7 @@ export default function DevicesSection() {
                                     <Icon icon="carbon:edit" className="w-4 h-4" />
                                 </Button>
                                 <Button color="red" variant="gradient" size="sm"
-                                    onClick={() => handleDeleteDevice(device)}
+                                    onClick={() => handleDeleteDevice(device)} disabled
                                     {...({} as React.ComponentProps<typeof Button>)}
                                 >
                                     <Icon icon="tabler:trash" className="w-4 h-4" />

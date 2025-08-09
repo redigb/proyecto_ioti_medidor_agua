@@ -23,4 +23,7 @@ public class ConsumoDiario {
     private Double consumoTotal;
     private Boolean exceso;
 
+    public boolean isExceso() {
+        return false;
+    }
 }

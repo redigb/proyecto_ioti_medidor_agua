@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Consumo de Agua - Con Predicción</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --color-primary: #2563eb;
+            --color-secondary: #4b5563;
+            --color-dispositivo1: #3b82f6;
+            --color-dispositivo2: #10b981;
+            --color-exceso: #ef4444;
+            --color-varianza: #8b5cf6;
+            --color-media: #3b82f6;
+            --color-mediana: #10b981;
+            --color-prediccion: #f59e0b;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.4;
+            color: #1f2937;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        .panel {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .panel-header {
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        h1, h2, h3 {
+            color: var(--color-primary);
+            margin-top: 0;
+        }
+        h1 { font-size: 1.8rem; }
+        h2 { font-size: 1.4rem; }
+        h3 { font-size: 1.1rem; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .stat-card {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: #f8fafc;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        .media-value { color: var(--color-media); }
+        .mediana-value { color: var(--color-mediana); }
+        .varianza-value { color: var(--color-varianza); }
+        .prediccion-value { color: var(--color-prediccion); }
+        .chart-container {
+            height: 300px;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+        .comparison-chart {
+            height: 250px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 0.6rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
+        .exceso {
+            color: var(--color-exceso);
+            font-weight: 600;
+        }
+        .stat-formula {
+            font-family: monospace;
+            background: #e5e7eb;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.25rem;
+            display: inline-block;
+            margin: 0.3rem 0;
+            font-size: 0.85rem;
+        }
+        .analysis-section {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        .prediction-section {
+            background: #fffbeb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            border-left: 4px solid var(--color-prediccion);
+        }
+        .prediction-highlight {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        @media (max-width: 768px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard de Consumo de Agua</h1>
+    <p class="subtitle">Análisis estadístico y predicción de consumo</p>
+
+    <div class="dashboard-container">
+        <!-- Panel Principal -->
+        <div>
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Dispositivo Principal</h2>
+                    <p class="device-id">ID: 688e2c8674469e6688a1eb5d</p>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Consumo (m³)</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-primary">
+                        <!-- Datos se cargarán con JavaScript -->
+                    </tbody>
+                </table>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Media</h3>
+                        <div class="stat-value media-value" id="mean-primary">0.00</div>
+                        <p class="stat-formula">μ = Σxᵢ/n</p>
+                        <p>Promedio de consumo diario</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Mediana</h3>
+                        <div class="stat-value mediana-value" id="median-primary">0.00</div>
+                        <p class="stat-formula">Q₂ = valor central</p>
+                        <p>Punto medio de los datos</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Varianza</h3>
+                        <div class="stat-value varianza-value" id="variance-primary">0.00</div>
+                        <p class="stat-formula">σ² = Σ(xᵢ-μ)²/n</p>
+                        <p>Dispersión de los datos</p>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="consumptionChartPrimary"></canvas>
+                </div>
+
+                <div class="chart-container comparison-chart">
+                    <canvas id="statsChartPrimary"></canvas>
+                </div>
+
+                <div class="analysis-section">
+                    <h3>Interpretación Estadística</h3>
+                    <p><strong>Desviación Estándar:</strong> <span id="std-dev-primary"></span></p>
+                    <p><strong>Coeficiente de Variación:</strong> <span id="cv-primary"></span></p>
+                    <p><strong>Análisis:</strong> <span id="analysis-primary"></span></p>
+                </div>
+
+                <div class="prediction-section">
+                    <h3>Predicción para mañana</h3>
+                    <p>Basado en el consumo histórico y el patrón reciente:</p>
+                    <p class="prediction-highlight">Consumo estimado: <span id="prediction-primary" class="prediccion-value">--.-- m³</span></p>
+                    <p><strong>Método:</strong> <span id="prediction-method-primary"></span></p>
+                    <p><strong>Confianza:</strong> <span id="confidence-primary"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Consumo -->
+        <div>
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Sistema de Consumo</h2>
+                    <p class="device-id">ID: 688e2d3974469e6688a1eb60</p>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Consumo (m³)</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-consumption">
+                        <!-- Datos se cargarán con JavaScript -->
+                    </tbody>
+                </table>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Media</h3>
+                        <div class="stat-value media-value" id="mean-consumption">0.00</div>
+                        <p class="stat-formula">μ = Σxᵢ/n</p>
+                        <p>Promedio de consumo diario</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Mediana</h3>
+                        <div class="stat-value mediana-value" id="median-consumption">0.00</div>
+                        <p class="stat-formula">Q₂ = valor central</p>
+                        <p>Punto medio de los datos</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Varianza</h3>
+                        <div class="stat-value varianza-value" id="variance-consumption">0.00</div>
+                        <p class="stat-formula">σ² = Σ(xᵢ-μ)²/n</p>
+                        <p>Dispersión de los datos</p>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="consumptionChartConsumption"></canvas>
+                </div>
+
+                <div class="chart-container comparison-chart">
+                    <canvas id="statsChartConsumption"></canvas>
+                </div>
+
+                <div class="analysis-section">
+                    <h3>Interpretación Estadística</h3>
+                    <p><strong>Desviación Estándar:</strong> <span id="std-dev-consumption"></span></p>
+                    <p><strong>Coeficiente de Variación:</strong> <span id="cv-consumption"></span></p>
+                    <p><strong>Análisis:</strong> <span id="analysis-consumption"></span></p>
+                </div>
+
+                <div class="prediction-section">
+                    <h3>Predicción para mañana</h3>
+                    <p>Basado en el consumo histórico y el patrón reciente:</p>
+                    <p class="prediction-highlight">Consumo estimado: <span id="prediction-consumption" class="prediccion-value">--.-- m³</span></p>
+                    <p><strong>Método:</strong> <span id="prediction-method-consumption"></span></p>
+                    <p><strong>Confianza:</strong> <span id="confidence-consumption"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de ejemplo
+        const sampleData = {
+            primary: [
+                { fecha: "2025-07-24", consumoTotal: 38.2, exceso: false },
+                { fecha: "2025-07-25", consumoTotal: 42.1, exceso: false },
+                { fecha: "2025-07-26", consumoTotal: 47.5, exceso: false },
+                { fecha: "2025-07-27", consumoTotal: 51.3, exceso: true },
+                { fecha: "2025-07-28", consumoTotal: 39.8, exceso: false },
+                { fecha: "2025-07-29", consumoTotal: 45.6, exceso: false },
+                { fecha: "2025-07-30", consumoTotal: 49.2, exceso: true },
+                { fecha: "2025-07-31", consumoTotal: 43.7, exceso: false },
+                { fecha: "2025-08-01", consumoTotal: 40.9, exceso: false },
+                { fecha: "2025-08-02", consumoTotal: 44.4, exceso: false }
+            ],
+            consumption: [
+                { fecha: "2025-07-24", consumoTotal: 12.5, exceso: false },
+                { fecha: "2025-07-25", consumoTotal: 14.8, exceso: false },
+                { fecha: "2025-07-26", consumoTotal: 18.3, exceso: true },
+                { fecha: "2025-07-27", consumoTotal: 13.2, exceso: false },
+                { fecha: "2025-07-28", consumoTotal: 16.7, exceso: true },
+                { fecha: "2025-07-29", consumoTotal: 11.9, exceso: false },
+                { fecha: "2025-07-30", consumoTotal: 15.4, exceso: false },
+                { fecha: "2025-07-31", consumoTotal: 17.1, exceso: true },
+                { fecha: "2025-08-01", consumoTotal: 14.2, exceso: false },
+                { fecha: "2025-08-02", consumoTotal: 15.29, exceso: false }
+            ]
+        };
+
+        // Funciones de cálculo estadístico
+        const calculateMean = data => data.reduce((sum, item) => sum + item.consumoTotal, 0) / data.length;
+        
+        const calculateMedian = data => {
+            const sorted = [...data].map(item => item.consumoTotal).sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        };
+        
+        const calculateVariance = (data, mean) => {
+            return data.reduce((sum, item) => sum + Math.pow(item.consumoTotal - mean, 2), 0) / data.length;
+        };
+        
+        const analyzeVariance = (variance, mean) => {
+            const stdDev = Math.sqrt(variance);
+            const cv = (stdDev / mean) * 100;
+            
+            let analysis = "";
+            if (variance < 10) analysis = "Baja variabilidad (consumo muy consistente)";
+            else if (variance < 25) analysis = "Variabilidad moderada (consumo regular)";
+            else analysis = "Alta variabilidad (consumo irregular)";
+            
+            return {
+                stdDev: stdDev.toFixed(2),
+                cv: cv.toFixed(1) + '%',
+                analysis
+            };
+        };
+
+        // Función para predecir el consumo del día siguiente
+        const predictNextDayConsumption = (data) => {
+            // Obtener los últimos 7 días para analizar tendencia
+            const recentData = data.slice(-7).map(item => item.consumoTotal);
+            
+            // Método 1: Promedio móvil de los últimos 3 días
+            const last3Days = recentData.slice(-3);
+            const movingAverage = last3Days.reduce((sum, val) => sum + val, 0) / last3Days.length;
+            
+            // Método 2: Último valor con ajuste por tendencia
+            const lastValue = recentData[recentData.length - 1];
+            const secondLastValue = recentData[recentData.length - 2];
+            const trendAdjustment = (lastValue - secondLastValue) * 0.5; // Ajuste conservador
+            
+            // Método 3: Media ponderada (últimos días tienen más peso)
+            const weights = [0.1, 0.2, 0.3, 0.4]; // Pesos para los últimos 4 días
+            const weightedValues = recentData.slice(-4).map((val, i) => val * (weights[i] || 0));
+            const weightedAverage = weightedValues.reduce((sum, val) => sum + val, 0);
+            
+            // Decidir qué método usar basado en la varianza reciente
+            const recentVariance = calculateVariance(
+                data.slice(-7), 
+                calculateMean(data.slice(-7))
+            );
+            
+            let prediction, method, confidence;
+            
+            if (recentVariance < 5) {
+                // Si la varianza es baja, confiamos más en el último valor
+                prediction = lastValue;
+                method = "Último valor (varianza baja)";
+                confidence = "Alta";
+            } else if (recentVariance < 15) {
+                // Variabilidad moderada - usar promedio móvil
+                prediction = movingAverage;
+                method = "Promedio móvil (3 días)";
+                confidence = "Media";
+            } else {
+                // Alta variabilidad - usar media ponderada
+                prediction = weightedAverage;
+                method = "Media ponderada (4 días)";
+                confidence = "Moderada";
+            }
+            
+            // Ajuste final basado en día de la semana (simulación simple)
+            const nextDay = new Date(data[data.length - 1].fecha);
+            nextDay.setDate(nextDay.getDate() + 1);
+            const dayOfWeek = nextDay.getDay();
+            
+            // Ajustar para fines de semana (suponiendo mayor consumo)
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                prediction *= 1.1; // Aumentar 10% para fin de semana
+                method += " + ajuste fin de semana";
+            }
+            
+            return {
+                prediction: Math.max(0, prediction).toFixed(2), // Asegurar valor no negativo
+                method,
+                confidence
+            };
+        };
+
+        // Función para formatear fecha
+        const formatDate = dateStr => {
+            const date = new Date(dateStr);
+            return `${date.getDate()}/${date.getMonth() + 1}`;
+        };
+
+        // Función para renderizar tabla
+        const renderTable = (elementId, data) => {
+            const tbody = document.getElementById(elementId);
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td>${formatDate(item.fecha)}</td>
+                    <td>${item.consumoTotal}</td>
+                    <td class="${item.exceso ? 'exceso' : ''}">${item.exceso ? 'Exceso' : 'Normal'}</td>
+                </tr>
+            `).join('');
+        };
+
+        // Función para crear gráfico de consumo
+        const createConsumptionChart = (ctxId, data, label, color) => {
+            const ctx = document.getElementById(ctxId).getContext('2d');
+            
+            // Predecir siguiente día
+            const prediction = predictNextDayConsumption(data);
+            const predictionValue = parseFloat(prediction.prediction);
+            
+            // Crear datos para el gráfico incluyendo la predicción
+            const chartData = {
+                labels: [...data.map(item => formatDate(item.fecha)), "Próximo día"],
+                datasets: [{
+                    label: 'Consumo Real',
+                    data: [...data.map(item => item.consumoTotal), null],
+                    borderColor: color,
+                    backgroundColor: `${color}20`,
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointBackgroundColor: [...data.map(item => 
+                        item.exceso ? 'rgba(239, 68, 68, 1)' : color), 'rgba(245, 158, 11, 1)'],
+                    pointRadius: [...data.map(() => 5), 7],
+                    fill: true
+                }, {
+                    label: 'Predicción',
+                    data: [...data.map(() => null), predictionValue],
+                    borderColor: 'rgba(245, 158, 11, 1)',
+                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointBackgroundColor: 'rgba(245, 158, 11, 1)',
+                    pointRadius: 7,
+                    fill: false
+                }]
+            };
+            
+            return new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.raw !== null) {
+                                        label += context.raw.toFixed(2) + ' m³';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                line1: {
+                                    type: 'line',
+                                    yMin: predictionValue,
+                                    yMax: predictionValue,
+                                    borderColor: 'rgba(245, 158, 11, 1)',
+                                    borderWidth: 1,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        content: 'Predicción: ' + predictionValue.toFixed(2),
+                                        enabled: true,
+                                        position: 'right'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Consumo (m³)'
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        // Función para crear gráfico de estadísticas
+        const createStatsChart = (ctxId, mean, median, variance, label) => {
+            const ctx = document.getElementById(ctxId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Media', 'Mediana', 'Varianza'],
+                    datasets: [{
+                        label: label,
+                        data: [mean, median, variance],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(139, 92, 246, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(139, 92, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Comparación de Estadísticas'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Valor'
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        // Inicialización del dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            // Procesar datos del dispositivo principal
+            const primaryData = sampleData.primary;
+            const primaryMean = calculateMean(primaryData);
+            const primaryMedian = calculateMedian(primaryData);
+            const primaryVariance = calculateVariance(primaryData, primaryMean);
+            const primaryAnalysis = analyzeVariance(primaryVariance, primaryMean);
+            const primaryPrediction = predictNextDayConsumption(primaryData);
+            
+            // Actualizar UI para dispositivo principal
+            renderTable('data-primary', primaryData);
+            document.getElementById('mean-primary').textContent = primaryMean.toFixed(2);
+            document.getElementById('median-primary').textContent = primaryMedian.toFixed(2);
+            document.getElementById('variance-primary').textContent = primaryVariance.toFixed(2);
+            document.getElementById('std-dev-primary').textContent = primaryAnalysis.stdDev;
+            document.getElementById('cv-primary').textContent = primaryAnalysis.cv;
+            document.getElementById('analysis-primary').textContent = primaryAnalysis.analysis;
+            document.getElementById('prediction-primary').textContent = primaryPrediction.prediction + ' m³';
+            document.getElementById('prediction-method-primary').textContent = primaryPrediction.method;
+            document.getElementById('confidence-primary').textContent = primaryPrediction.confidence;
+            
+            // Crear gráficos para dispositivo principal
+            createConsumptionChart(
+                'consumptionChartPrimary', 
+                primaryData, 
+                'Consumo Principal', 
+                'rgba(59, 130, 246, 1)'
+            );
+            
+            createStatsChart(
+                'statsChartPrimary',
+                primaryMean,
+                primaryMedian,
+                primaryVariance,
+                'Dispositivo Principal'
+            );
+            
+            // Procesar datos del sistema de consumo
+            const consumptionData = sampleData.consumption;
+            const consumptionMean = calculateMean(consumptionData);
+            const consumptionMedian = calculateMedian(consumptionData);
+            const consumptionVariance = calculateVariance(consumptionData, consumptionMean);
+            const consumptionAnalysis = analyzeVariance(consumptionVariance, consumptionMean);
+            const consumptionPrediction = predictNextDayConsumption(consumptionData);
+            
+            // Actualizar UI para sistema de consumo
+            renderTable('data-consumption', consumptionData);
+            document.getElementById('mean-consumption').textContent = consumptionMean.toFixed(2);
+            document.getElementById('median-consumption').textContent = consumptionMedian.toFixed(2);
+            document.getElementById('variance-consumption').textContent = consumptionVariance.toFixed(2);
+            document.getElementById('std-dev-consumption').textContent = consumptionAnalysis.stdDev;
+            document.getElementById('cv-consumption').textContent = consumptionAnalysis.cv;
+            document.getElementById('analysis-consumption').textContent = consumptionAnalysis.analysis;
+            document.getElementById('prediction-consumption').textContent = consumptionPrediction.prediction + ' m³';
+            document.getElementById('prediction-method-consumption').textContent = consumptionPrediction.method;
+            document.getElementById('confidence-consumption').textContent = consumptionPrediction.confidence;
+            
+            // Crear gráficos para sistema de consumo
+            createConsumptionChart(
+                'consumptionChartConsumption', 
+                consumptionData, 
+                'Sistema de Consumo', 
+                'rgba(16, 185, 129, 1)'
+            );
+            
+            createStatsChart(
+                'statsChartConsumption',
+                consumptionMean,
+                consumptionMedian,
+                consumptionVariance,
+                'Sistema de Consumo'
+            );
+        });
+    </script>
+</body>
+</html>

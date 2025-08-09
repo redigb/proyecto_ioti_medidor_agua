@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, useRef } from "react"
 
 import { Card, CardBody, CardHeader, Typography } from "@material-tailwind/react"
@@ -19,7 +21,7 @@ export default function MedicionesSection() {
 
     // Estado para el dispositivo seleccionado
     const [dispositivoSeleccionado, setDispositivoSeleccionado] = useState<string>('');
-    // Obtener la lista de dispositivos
+    // Obtener la lista de dispositivos todos los dispositivos 
     const { data: dataDispositivos } = useDispositivos();
     const dispositivos = dataDispositivos ?? [];
     // Mediciones por dispositivo seleccionado
@@ -190,7 +192,6 @@ export default function MedicionesSection() {
                             </Typography>
                         ) : (
                             <BarChartRealtime data={medicionesTiempoReal} />
-
                         )}
 
                     </div>

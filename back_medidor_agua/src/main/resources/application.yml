@@ -12,7 +12,8 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://admin77rd:admin1237rd@localhost:27017/midatabase?authSource=admin #mongodb://admin77rd:admin1237rd@srv-captain--mongo-ioti:27017/midatabase?authSource=admin //    #${SPRING_DATA_MONGODB_URI} #mongodb://admin77rd:admin1237rd@localhost:27017/midatabase?authSource=admin
+      uri: mongodb://admin77rd:admin1237rd@localhost:27017/midatabase?authSource=admin #mongodb://admin77rd:admin1237rd@161.132.40.211:1234/midatabase?authSource=admin   #mongodb://admin77rd:admin1237rd@localhost:27017/midatabase?authSource=admin  # mongodb://admin77rd:admin1237rd@srv-captain--mongo-ioti:27017/midatabase?authSource=admin
+      #mongodb://admin77rd:admin1237rd@localhost:27017/midatabase?authSource=admin #mongodb://admin77rd:admin1237rd@srv-captain--mongo-ioti:27017/midatabase?authSource=admin //    #${SPRING_DATA_MONGODB_URI} #mongodb://admin77rd:admin1237rd@localhost:27017/midatabase?authSource=admin
 
   #sql:
    # init:
